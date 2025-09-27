@@ -12,12 +12,17 @@ fn main() {
     
     // Load and analyze study data
     let sessions = match StudySession::load_from_csv("data/study_sessions.csv") {
-        Ok(sessions) => {
+        Ok(sessions) if !sessions.is_empty() => {
             println!("✅ Loaded {} study sessions", sessions.len());
             sessions
         }
+        Ok(_) => {
+            println!("❌ No data found in CSV file");
+            return;
+        }
         Err(e) => {
             println!("❌ Error loading data: {}", e);
+            println!("💡 Check if data/study_sessions.csv exists and has correct format");
             return;
         }
     };

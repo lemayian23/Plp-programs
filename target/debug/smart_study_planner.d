@@ -1,0 +1,1 @@
+D:\RUST\MLwithRUST\target\debug\smart_study_planner.exe: D:\RUST\MLwithRUST\src\data_processing.rs D:\RUST\MLwithRUST\src\main.rs D:\RUST\MLwithRUST\src\ml_model.rs D:\RUST\MLwithRUST\src\study_planner.rs
