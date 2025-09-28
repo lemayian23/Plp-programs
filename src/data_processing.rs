@@ -7,7 +7,7 @@ pub struct StudySession {
     pub subject: String,
     pub hours_studied: f64,
     pub time_of_day: String,
-    pub understanding_score: u32,  // Now we'll use this!
+    pub understanding_score: u32,
     pub retention_score: u32,
 }
 
@@ -36,6 +36,23 @@ impl StudySession {
             println!("⚠️  No data loaded - file might be empty or malformed");
         }
         
+        Ok(sessions)
+    }
+
+    // New method to load CSV from string content instead of file
+    pub fn load_from_csv_content(csv_content: &str) -> Result<Vec<Self>, Box<dyn Error>> {
+        let mut rdr = csv::Reader::from_reader(csv_content.as_bytes());
+        let mut sessions = Vec::new();
+
+        for result in rdr.deserialize() {
+            let session: StudySession = result?;
+            sessions.push(session);
+        }
+
+        if sessions.is_empty() {
+            return Err("No valid data found in CSV".into());
+        }
+
         Ok(sessions)
     }
     

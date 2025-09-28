@@ -218,4 +218,10 @@ impl SmartAnalyzer {
         
         ((second_half_avg - first_half_avg) / first_half_avg.max(1.0)) * 100.0
     }
+        pub fn calculate_overall_effectiveness(&self) -> f64 {
+    let total_effectiveness: f64 = self.student_data.iter()
+            .map(|session| session.effectiveness_score())
+            .sum();
+        total_effectiveness / self.student_data.len() as f64 * 100.0
+    }
 }
