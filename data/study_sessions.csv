@@ -1,7 +1,11 @@
 subject,hours_studied,time_of_day,understanding_score,retention_score
-math,2.0,morning,85,90
+mathematics,2.0,morning,85,90
 physics,1.5,afternoon,70,65
 programming,3.0,evening,90,80
 history,1.0,morning,60,75
-math,1.5,evening,75,70
-physics,2.5,morning,80,85
+english,1.5,evening,75,70
+chemistry,2.5,morning,80,85
+mathematics,1.5,afternoon,75,70
+programming,2.0,evening,85,80
+physics,2.0,morning,80,85
+history,1.0,afternoon,65,60

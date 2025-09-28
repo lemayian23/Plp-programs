@@ -7,8 +7,8 @@ pub struct StudySession {
     pub subject: String,
     pub hours_studied: f64,
     pub time_of_day: String,
-    pub understanding_score: u32,
-    pub retention_score: u32,  // Make sure this matches CSV exactly
+    pub understanding_score: u32,  // Now we'll use this!
+    pub retention_score: u32,
 }
 
 impl StudySession {
@@ -39,5 +39,9 @@ impl StudySession {
         Ok(sessions)
     }
     
-    // Remove the unused to_features method for now
+    // Calculate study effectiveness score
+    pub fn effectiveness_score(&self) -> f64 {
+        // Combine understanding and retention for overall effectiveness
+        (self.understanding_score as f64 * 0.4 + self.retention_score as f64 * 0.6) / 100.0
+    }
 }
