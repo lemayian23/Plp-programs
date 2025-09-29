@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Study Planner</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container { 
+            background: rgba(255,255,255,0.1); 
+            padding: 30px; 
+            border-radius: 15px; 
+            backdrop-filter: blur(10px);
+        }
+        h1 { text-align: center; margin-bottom: 30px; }
+        .tabs { display: flex; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab { 
+            padding: 10px 20px; 
+            background: rgba(255,255,255,0.2); 
+            margin-right: 10px; 
+            margin-bottom: 10px;
+            cursor: pointer; 
+            border-radius: 5px;
+        }
+        .tab.active { background: rgba(255,255,255,0.4); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select, textarea, button { 
+            width: 100%; 
+            padding: 10px; 
+            border: none; 
+            border-radius: 5px; 
+            margin-bottom: 10px;
+        }
+        button { 
+            background: #4CAF50; 
+            color: white; 
+            cursor: pointer; 
+            font-size: 16px;
+        }
+        button:hover { background: #45a049; }
+        .result { 
+            background: rgba(255,255,255,0.2); 
+            padding: 20px; 
+            border-radius: 10px; 
+            margin-top: 20px;
+        }
+        .recommendation { 
+            background: rgba(255,255,255,0.3); 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 5px;
+        }
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 15px; 
+            margin: 20px 0;
+        }
+        .stat-card { 
+            background: rgba(255,255,255,0.2); 
+            padding: 15px; 
+            border-radius: 8px; 
+            text-align: center;
+        }
+        .upload-section { 
+            margin: 20px 0; 
+            padding: 20px; 
+            border: 2px dashed rgba(255,255,255,0.3); 
+            border-radius: 8px; 
+            background: rgba(255,255,255,0.1);
+        }
+        .upload-section input[type="file"] {
+            background: white;
+            color: #333;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .auth-section {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .user-info {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Smart Study Planner</h1>
+        
+        <!-- User Info Section -->
+        <div id="userInfo" class="user-info" style="display: none;">
+            <p>Welcome, <span id="usernameDisplay"></span>! <button onclick="logout()" style="width: auto; margin-left: 10px;">Logout</button></p>
+        </div>
+        
+        <div id="authSection" class="auth-section">
+            <div class="tabs">
+                <div class="tab active" onclick="switchAuthTab('login')">🔐 Login</div>
+                <div class="tab" onclick="switchAuthTab('register')">📝 Register</div>
+            </div>
+
+            <!-- Login Form -->
+            <div id="login" class="tab-content active">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginUsername">Username:</label>
+                        <input type="text" id="loginUsername" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password:</label>
+                        <input type="password" id="loginPassword" name="password" required>
+                    </div>
+                    <button type="submit">Login</button>
+                </form>
+                <div id="loginResult"></div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register" class="tab-content">
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="registerUsername">Username:</label>
+                        <input type="text" id="registerUsername" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerEmail">Email:</label>
+                        <input type="email" id="registerEmail" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Password:</label>
+                        <input type="password" id="registerPassword" name="password" required>
+                    </div>
+                    <button type="submit">Register</button>
+                </form>
+                <div id="registerResult"></div>
+            </div>
+        </div>
+
+        <!-- Main App (hidden until authenticated) -->
+        <div id="appContent" style="display: none;">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('analyze')">📊 Analyze</div>
+                <div class="tab" onclick="switchTab('add-session')">➕ Add Session</div>
+                <div class="tab" onclick="switchTab('history')">📈 History</div>
+                <div class="tab" onclick="switchTab('upload')">📁 Upload CSV</div>
+            </div>
+
+            <!-- Analyze Tab -->
+            <div id="analyze" class="tab-content active">
+                <h3>📊 Analyze Study Patterns</h3>
+                <p>Get AI-powered recommendations based on your study patterns!</p>
+                <button onclick="analyzeData()">Analyze Study Patterns</button>
+                
+                <div id="results" style="display: none;">
+                    <h2>📊 Analysis Results</h2>
+                    <div id="analysisContent"></div>
+                </div>
+            </div>
+
+            <!-- Add Session Tab -->
+            <div id="add-session" class="tab-content">
+                <h3>Add New Study Session</h3>
+                <form id="sessionForm">
+                    <div class="form-group">
+                        <label for="subject">Subject:</label>
+                        <input type="text" id="subject" name="subject" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="hours">Hours Studied:</label>
+                        <input type="number" id="hours" name="hours" step="0.1" min="0.5" max="8" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="timeOfDay">Time of Day:</label>
+                        <select id="timeOfDay" name="timeOfDay" required>
+                            <option value="morning">Morning</option>
+                            <option value="afternoon">Afternoon</option>
+                            <option value="evening">Evening</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="understanding">Understanding Score (0-100):</label>
+                        <input type="number" id="understanding" name="understanding" min="0" max="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="retention">Retention Score (0-100):</label>
+                        <input type="number" id="retention" name="retention" min="0" max="100" required>
+                    </div>
+                    <button type="submit">Save Study Session</button>
+                </form>
+                <div id="sessionResult"></div>
+            </div>
+
+            <!-- History Tab -->
+            <div id="history" class="tab-content">
+                <h3>Analysis History</h3>
+                <button onclick="loadHistory()">Load Latest Analysis</button>
+                <div id="historyContent" style="margin-top: 20px;"></div>
+            </div>
+
+            <!-- Upload CSV Tab -->
+            <div id="upload" class="tab-content">
+                <div class="upload-section">
+                    <h3>📁 Upload Study Sessions CSV</h3>
+                    <p>Upload your study sessions CSV file to analyze your learning patterns</p>
+                    
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="csvFile">Select CSV File:</label>
+                            <input type="file" id="csvFile" name="csvfile" accept=".csv" required>
+                        </div>
+                        <button type="submit">📤 Upload & Analyze</button>
+                    </form>
+                    
+                    <div id="uploadResult" style="margin-top: 15px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check authentication status on page load
+        document.addEventListener('DOMContentLoaded', checkAuthStatus);
+
+        // Authentication functions
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch('/api/user');
+                const userData = await response.json();
+                
+                if (userData.is_authenticated) {
+                    showAppContent(userData.username);
+                } else {
+                    showAuthForms();
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                showAuthForms();
+            }
+        }
+
+        function showAppContent(username) {
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('appContent').style.display = 'block';
+            document.getElementById('userInfo').style.display = 'block';
+            document.getElementById('usernameDisplay').textContent = username;
+        }
+
+        function showAuthForms() {
+            document.getElementById('authSection').style.display = 'block';
+            document.getElementById('appContent').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'none';
+        }
+
+        function switchAuthTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Login form handling
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const loginData = {
+                username: document.getElementById('loginUsername').value,
+                password: document.getElementById('loginPassword').value
+            };
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(loginData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('loginResult').innerHTML = 
+                        '<div class="result" style="background: rgba(0,255,0,0.2);">✅ Login successful!</div>';
+                    setTimeout(() => {
+                        checkAuthStatus();
+                    }, 1000);
+                } else {
+                    document.getElementById('loginResult').innerHTML = 
+                        `<div class="result" style="background: rgba(255,0,0,0.2);">❌ ${result.error}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('loginResult').innerHTML = 
+                    `<div class="result" style="background: rgba(255,0,0,0.2);">❌ Login failed: ${error}</div>`;
+            }
+        });
+
+        // Register form handling
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const registerData = {
+                username: document.getElementById('registerUsername').value,
+                email: document.getElementById('registerEmail').value,
+                password: document.getElementById('registerPassword').value
+            };
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(registerData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('registerResult').innerHTML = 
+                        '<div class="result" style="background: rgba(0,255,0,0.2);">✅ Registration successful! You can now login.</div>';
+                    document.getElementById('registerForm').reset();
+                    setTimeout(() => {
+                        switchAuthTab('login');
+                        document.getElementById('registerResult').innerHTML = '';
+                    }, 2000);
+                } else {
+                    document.getElementById('registerResult').innerHTML = 
+                        `<div class="result" style="background: rgba(255,0,0,0.2);">❌ ${result.error}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('registerResult').innerHTML = 
+                    `<div class="result" style="background: rgba(255,0,0,0.2);">❌ Registration failed: ${error}</div>`;
+            }
+        });
+
+        // Logout function
+        async function logout() {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+                showAuthForms();
+            } catch (error) {
+                console.error('Logout failed:', error);
+            }
+        }
+
+        // ... rest of your existing functions (switchTab, analyzeData, displayResults, etc.) ...
+        // KEEP ALL YOUR EXISTING STUDY PLANNER FUNCTIONS HERE
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        async function analyzeData() {
+            try {
+                const response = await fetch('/api/analysis');
+                const result = await response.json();
+                displayResults(result);
+            } catch (error) {
+                alert('Error analyzing data: ' + error);
+            }
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            const contentDiv = document.getElementById('analysisContent');
+            
+            let html = `
+                <div class="result">
+                    <h3>🎯 Student: ${data.student_id}</h3>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h4>📅 Weekly Hours</h4>
+                            <p>${data.weekly_trend.weekly_hours.toFixed(1)}h</p>
+                        </div>
+                        <div class="stat-card">
+                            <h4>⚡ Efficiency</h4>
+                            <p>${data.weekly_trend.efficiency_score.toFixed(1)}/100</p>
+                        </div>
+                        <div class="stat-card">
+                            <h4>🔄 Consistency</h4>
+                            <p>${data.weekly_trend.consistency_score.toFixed(1)}%</p>
+                        </div>
+                        <div class="stat-card">
+                            <h4>📈 Improvement</h4>
+                            <p>${data.weekly_trend.improvement_rate.toFixed(1)}%</p>
+                        </div>
+                    </div>
+                    
+                    <h4>📚 Subject Performance</h4>
+                    ${Object.entries(data.subject_performance).map(([subject, score]) => 
+                        `<p><strong>${subject}:</strong> ${score.toFixed(1)}%</p>`
+                    ).join('')}
+                    
+                    <h4>🕐 Optimal Study Times</h4>
+                    <p>${data.optimal_times.join(', ')}</p>
+                    
+                    <h4>🔮 Predicted Scores</h4>
+                    ${Object.entries(data.predicted_scores).map(([subject, score]) => 
+                        `<p><strong>${subject}:</strong> ${score.toFixed(1)}%</p>`
+                    ).join('')}
+                    
+                    <h4>💡 AI Recommendations</h4>
+                    ${data.recommendations.map(rec => 
+                        `<div class="recommendation">
+                            <strong>${rec.category.toUpperCase()}:</strong> ${rec.message}<br>
+                            <small>Confidence: ${(rec.confidence * 100).toFixed(0)}%, Impact: ${rec.impact_score}/10</small>
+                        </div>`
+                    ).join('')}
+                </div>
+            `;
+            
+            contentDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        }
+
+        // Session form handling
+        document.getElementById('sessionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const sessionData = {
+                subject: document.getElementById('subject').value,
+                hours_studied: parseFloat(document.getElementById('hours').value),
+                time_of_day: document.getElementById('timeOfDay').value,
+                understanding_score: parseInt(document.getElementById('understanding').value),
+                retention_score: parseInt(document.getElementById('retention').value)
+            };
+
+            try {
+                const response = await fetch('/api/session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(sessionData)
+                });
+                
+                const result = await response.json();
+                document.getElementById('sessionResult').innerHTML = 
+                    `<div class="result" style="background: rgba(0,255,0,0.2);">
+                        <p>✅ ${result.message || 'Session saved successfully!'}</p>
+                    </div>`;
+                
+                // Clear form
+                document.getElementById('sessionForm').reset();
+            } catch (error) {
+                document.getElementById('sessionResult').innerHTML = 
+                    `<div class="result" style="background: rgba(255,0,0,0.2);">
+                        <p>❌ Error: ${error}</p>
+                    </div>`;
+            }
+        });
+
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/analysis/history');
+                if (response.ok) {
+                    const result = await response.json();
+                    document.getElementById('historyContent').innerHTML = 
+                        `<div class="result">
+                            <h4>Latest Analysis from Database</h4>
+                            <p><strong>Student:</strong> ${result.student_id}</p>
+                            <p><strong>Weekly Hours:</strong> ${result.weekly_trend.weekly_hours.toFixed(1)}h</p>
+                            <p><strong>Analysis saved in database!</strong></p>
+                        </div>`;
+                } else {
+                    document.getElementById('historyContent').innerHTML = 
+                        `<div class="result" style="background: rgba(255,255,0,0.2);">
+                            <p>No analysis history found. Run an analysis first!</p>
+                        </div>`;
+                }
+            } catch (error) {
+                document.getElementById('historyContent').innerHTML = 
+                    `<div class="result" style="background: rgba(255,0,0,0.2);">
+                        <p>Error loading history: ${error}</p>
+                    </div>`;
+            }
+        }
+
+        // File upload handling
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('csvFile');
+            const resultDiv = document.getElementById('uploadResult');
+            
+            if (!fileInput.files[0]) {
+                resultDiv.innerHTML = '<p style="color: #ff6b6b;">Please select a CSV file</p>';
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('csvfile', fileInput.files[0]);
+            
+            resultDiv.innerHTML = '<p>⏳ Uploading and processing file...</p>';
+            
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="result" style="background: rgba(0,255,0,0.2);">
+                            <p>✅ ${data.message}</p>
+                            <p><strong>Analysis completed!</strong> Switch to the Analyze tab to see results.</p>
+                        </div>
+                    `;
+                    // Clear file input
+                    fileInput.value = '';
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="result" style="background: rgba(255,0,0,0.2);">
+                            <p>❌ Error: ${data.error}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result" style="background: rgba(255,0,0,0.2);">
+                        <p>❌ Upload failed: ${error}</p>
+                    </div>
+                `;
+            }
+        });
+
+        function loadAnalysis() {
+            analyzeData();
+        }
+    </script>
+</body>
+</html>
